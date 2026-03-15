@@ -1,0 +1,61 @@
+{
+  "name": "flowdrop",
+  "displayName": "flowdrop",
+  "expo": {
+    "name": "flowdrop",
+    "slug": "flowdrop",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#111B21"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jerry.flowdrop",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "This app uses Bluetooth to find and communicate with nearby mesh nodes.",
+        "NSBluetoothPeripheralUsageDescription": "This app uses Bluetooth to allow nearby mesh nodes to find and communicate with you.",
+        "NSLocationWhenInUseUsageDescription": "Location is required to scan for nearby Bluetooth devices."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#111B21"
+      },
+      "package": "com.jerry.flowdrop",
+      "permissions": [
+        "BLUETOOTH",
+        "BLUETOOTH_ADMIN",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH_CONNECT",
+        "BLUETOOTH_ADVERTISE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+        [
+          "react-native-ble-plx",
+          {
+            "isBackgroundEnabled": true,
+            "modes": ["peripheral", "central"],
+            "bluetoothAlwaysPermission": "Allow flowdrop to connect to nearby devices."
+          }
+        ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "034f7962-f506-418c-b3f2-9d147014cc69"
+      }
+    }
+  }
+}
