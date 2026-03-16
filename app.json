@@ -1,6 +1,4 @@
 {
-  "name": "flowdrop",
-  "displayName": "flowdrop",
   "expo": {
     "name": "flowdrop",
     "slug": "flowdrop",
@@ -32,29 +30,36 @@
       "permissions": [
         "BLUETOOTH",
         "BLUETOOTH_ADMIN",
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION",
         "BLUETOOTH_SCAN",
         "BLUETOOTH_CONNECT",
-        "BLUETOOTH_ADVERTISE"
+        "BLUETOOTH_ADVERTISE",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_WIFI_STATE",
+        "CHANGE_WIFI_STATE",
+        "NEARBY_WIFI_DEVICES"
       ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-        [
-          "react-native-ble-plx",
-          {
-            "isBackgroundEnabled": true,
-            "modes": ["peripheral", "central"],
-            "bluetoothAlwaysPermission": "Allow flowdrop to connect to nearby devices."
-          }
-        ]
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": true,
+          "modes": [
+            "peripheral",
+            "central"
+          ],
+          "bluetoothAlwaysPermission": "Allow flowdrop to connect to nearby devices."
+        }
+      ],
+      "expo-asset"
     ],
     "extra": {
       "eas": {
-        "projectId": "034f7962-f506-418c-b3f2-9d147014cc69"
+        "projectId": "b7ff555e-b510-4294-9886-33e46dcdaf55"
       }
     }
   }
