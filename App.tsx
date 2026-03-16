@@ -13,13 +13,28 @@ import MeshStorage from './src/core/MeshStorage';
 import ChatView from './src/components/ChatView';
 import NetworkMap from './src/components/NetworkMap';
 
+interface Contact {
+  id: string;
+  name: string;
+}
+
+interface Peer {
+  id: string;
+  name?: string;
+}
+
+interface Profile {
+  id: string;
+  name: string;
+}
+
 function AppContent() {
   const [activeTab, setActiveTab] = useState('chats');
-  const [selectedContact, setSelectedContact] = useState(null);
-  const [peers, setPeers] = useState([]);
-  const [profile, setProfile] = useState({ name: 'Loading...', id: '' });
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [peers, setPeers] = useState<Peer[]>([]);
+  const [profile, setProfile] = useState<Profile>({ name: 'Loading...', id: '' });
   const [hasPermissions, setHasPermissions] = useState(false);
-  const [recentChats, setRecentChats] = useState([]);
+  const [recentChats, setRecentChats] = useState<Contact[]>([]);
 
   useEffect(() => {
     async function init() {
@@ -30,10 +45,10 @@ function AppContent() {
       setHasPermissions(granted);
 
       if (granted) {
-        MeshManager.onDeviceFound = (foundPeers) => {
+        (MeshManager as any).onDeviceFound = (foundPeers: Peer[]) => {
           setPeers(foundPeers);
         };
-        MeshManager.startScanning();
+        (MeshManager as any).startScanning();
       }
 
       loadRecentChats();
@@ -41,7 +56,7 @@ function AppContent() {
     init();
 
     return () => {
-      MeshManager.stopScanning();
+      (MeshManager as any).stopScanning();
     };
   }, []);
 
@@ -50,7 +65,7 @@ function AppContent() {
       setRecentChats(contacts);
   };
 
-  const openChat = (contact) => {
+  const openChat = (contact: Contact) => {
       setSelectedContact(contact);
   };
 
@@ -124,7 +139,7 @@ export default function App() {
 
 // ============== Sub-Views ============== //
 
-function ChatsView({ chats, onOpenChat }) {
+function ChatsView({ chats, onOpenChat }: { chats: Contact[], onOpenChat: (c: Contact) => void }) {
     if (chats.length === 0) {
         return (
             <View style={styles.centeredView}>
@@ -157,7 +172,11 @@ function ChatsView({ chats, onOpenChat }) {
     );
 }
 
-function NetworkView({ peers, permissions, onOpenChat }) {
+function NetworkView({ peers, permissions, onOpenChat }: { 
+    peers: Peer[], 
+    permissions: boolean, 
+    onOpenChat: (c: Contact) => void 
+}) {
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
 
     if (!permissions) {
@@ -228,7 +247,7 @@ function NetworkView({ peers, permissions, onOpenChat }) {
     )
 }
 
-function ProfileView({ profile }) {
+function ProfileView({ profile }: { profile: Profile }) {
     return (
         <View style={styles.panel}>
             <Text style={styles.panelTitle}>Identity (Public Key Hash)</Text>
