@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LocalChat</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#111b21">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LocalChat">
+    <link rel="apple-touch-icon" href="/icon.svg">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker registered', reg))
+            .catch(err => console.error('Service Worker not registered', err));
+        });
+      }
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- ================= HOME VIEW ================= -->
+        <div id="home-view" class="view active">
+            <header class="main-header">
+                <div class="header-top">
+                    <h1>LocalChat</h1>
+                    <div class="header-actions">
+                        <button class="icon-btn" id="theme-toggle-btn">
+                            <i data-lucide="moon"></i>
+                        </button>
+                        <button class="icon-btn" id="profile-btn">
+                            <i data-lucide="user"></i>
+                        </button>
+                    </div>
+                </div>
+                <nav class="tabs">
+                    <button class="tab-btn active" data-tab="chats">Chats</button>
+                    <button class="tab-btn" data-tab="network">Network</button>
+                    <button class="tab-btn" data-tab="friends">Friends</button>
+                </nav>
+            </header>
+
+            <main class="lists-container">
+                <!-- Chats Tab -->
+                <div id="chats-tab" class="tab-content active">
+                    <div class="empty-state">
+                        <i data-lucide="message-square"></i>
+                        <p>No recent chats.</p>
+                        <p class="sub-text">Go to Network to find people nearby.</p>
+                    </div>
+                    <!-- Dynamically injected chat items go here -->
+                </div>
+
+                <!-- Network Tab (People currently on WiFi) -->
+                <div id="network-tab" class="tab-content">
+                    <div class="network-header">
+                        <span><i data-lucide="wifi"></i> People on Hotspot</span>
+                        <span class="online-count" id="online-count">0 Online</span>
+                    </div>
+                    <ul class="user-list" id="network-list">
+                        <!-- Dynamically injected network users -->
+                    </ul>
+                </div>
+
+                <!-- Friends Tab -->
+                <div id="friends-tab" class="tab-content">
+                    <ul class="user-list" id="friends-list">
+                        <!-- Dynamically injected friends -->
+                    </ul>
+                </div>
+            </main>
+        </div>
+
+        <!-- ================= PRIVATE CHAT VIEW ================= -->
+        <div id="chat-view" class="view">
+            <header class="chat-header">
+                <button class="icon-btn" id="back-btn">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <div class="chat-user-info">
+                    <div class="avatar bg-blue" id="active-chat-avatar">U</div>
+                    <div class="details">
+                        <h2 id="active-chat-name">User Name</h2>
+                        <span class="status online" id="active-chat-status">Online</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" id="chat-options-btn">
+                        <i data-lucide="more-vertical"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="chat-messages bg-chat" id="private-messages-container">
+                <!-- Messages go here -->
+            </div>
+
+            <div class="chat-input-area">
+                <form id="private-chat-form" class="chat-form">
+                    <div class="chat-input-wrapper">
+                        <button type="button" class="btn-icon-dark" id="attach-btn">
+                            <i data-lucide="paperclip"></i>
+                        </button>
+                        <input type="text" id="private-message-input" placeholder="Message" autocomplete="off">
+                    </div>
+                    <button type="submit" class="btn-circle" id="private-send-btn">
+                        <i data-lucide="send"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ================= PROFILE MODAL ================= -->
+        <div class="modal-overlay" id="profile-modal">
+            <div class="modal-content bottom-sheet">
+                <div class="modal-header">
+                    <h3>Your Profile</h3>
+                    <button class="btn-icon close-modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="profile-edit">
+                        <div class="avatar large bg-primary" id="my-avatar">Me</div>
+                        <input type="text" id="username-input" placeholder="Your Name" class="input-modern">
+                        <p class="help-text">This name will be visible to everyone on the WiFi.</p>
+                        <button class="btn-primary full-width save-btn" id="save-profile-btn">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= FILE UPLOAD MODAL ================= -->
+        <div class="modal-overlay" id="upload-modal">
+            <div class="modal-content bottom-sheet">
+                <div class="modal-header">
+                    <h3>Send File</h3>
+                    <button class="btn-icon close-modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                     <form id="upload-form" enctype="multipart/form-data">
+                        <div class="file-drop-area" id="drop-area">
+                            <i data-lucide="upload-cloud" class="upload-icon"></i>
+                            <span class="fake-btn">Choose file</span>
+                            <input class="file-input" type="file" id="file-input" name="file" required>
+                        </div>
+                        <div class="file-preview" id="file-preview" style="display: none;">
+                            <i data-lucide="file" class="preview-icon"></i>
+                            <span id="preview-filename">filename.ext</span>
+                            <button type="button" class="btn-icon remove-file" id="remove-file-btn">
+                                <i data-lucide="x-circle"></i>
+                            </button>
+                        </div>
+                        <div class="progress-bar-container" id="progress-container" style="display: none;">
+                             <div class="progress-bar" id="progress-bar"></div>
+                        </div>
+                        <button type="submit" class="btn-primary full-width mt-3" id="upload-submit-btn" disabled>Send File</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= NOTIFICATION TOAST ================= -->
+        <div id="toast" class="toast">
+            <!-- Toast messages -->
+        </div>
+
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+    <script>
+      lucide.createIcons();
+    </script>
+</body>
+</html>
