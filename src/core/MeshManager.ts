@@ -1,17 +1,30 @@
-import { BleManager } from 'react-native-ble-plx';
+import { BleManager, Device } from 'react-native-ble-plx';
 import { PermissionsAndroid, Platform } from 'react-native';
 
 const MESH_SERVICE_UUID = 'A1B2C3D4-E5F6-7890-1234-567890ABCDEF';
 const manager = new BleManager();
 
+export interface Peer {
+  id: string;
+  name?: string | null;
+}
+
 class MeshManager {
+  private _devices: Map<string, Device>;
+  private isScanning: boolean;
+  public onDeviceFound: ((peers: Device[]) => void) | null;
+
   constructor() {
-    this.devices = new Map();
+    this._devices = new Map();
     this.isScanning = false;
     this.onDeviceFound = null; // Callback for UI
   }
 
-  async requestPermissions() {
+  public get devices(): Device[] {
+    return Array.from(this._devices.values());
+  }
+
+  async requestPermissions(): Promise<boolean> {
     if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.requestMultiple([
         PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
@@ -24,7 +37,7 @@ class MeshManager {
     return true; // iOS handles automatically via plist
   }
 
-  startScanning() {
+  startScanning(): void {
     if (this.isScanning) return;
     this.isScanning = true;
 
@@ -38,13 +51,13 @@ class MeshManager {
           return;
         }
 
-        if (device && !this.devices.has(device.id)) {
+        if (device && !this._devices.has(device.id)) {
             console.log(`Found Peer: ${device.name || 'Unknown'} (${device.id})`);
-            this.devices.set(device.id, device);
+            this._devices.set(device.id, device);
 
             // Notify UI
             if (this.onDeviceFound) {
-                this.onDeviceFound(Array.from(this.devices.values()));
+                this.onDeviceFound(this.devices);
             }
 
             // In a real mesh, we would attempt to connect here:
@@ -54,7 +67,7 @@ class MeshManager {
     );
   }
 
-  async connectToDevice(device) {
+  async connectToDevice(device: Device): Promise<void> {
     try {
       const connectedDevice = await manager.connectToDevice(device.id);
       await connectedDevice.discoverAllServicesAndCharacteristics();
@@ -64,11 +77,11 @@ class MeshManager {
       // ...
     } catch (e) {
         console.error(`Failed to connect to ${device.id}: `, e);
-        this.devices.delete(device.id);
+        this._devices.delete(device.id);
     }
   }
 
-  stopScanning() {
+  stopScanning(): void {
     manager.stopDeviceScan();
     this.isScanning = false;
   }

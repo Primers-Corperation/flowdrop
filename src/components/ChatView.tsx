@@ -6,9 +6,15 @@ import {
 import { ArrowLeft, Send, Paperclip, ShieldCheck, ShieldAlert } from 'lucide-react-native';
 import MeshRouter from '../core/MeshRouter';
 import MeshStorage from '../core/MeshStorage';
+import { Contact, Message } from '../types';
 
-export default function ChatView({ contact, onBack }) {
-    const [messages, setMessages] = useState([]);
+interface ChatViewProps {
+    contact: Contact & { publicKey?: string };
+    onBack: () => void;
+}
+
+export default function ChatView({ contact, onBack }: ChatViewProps) {
+    const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
 
     useEffect(() => {

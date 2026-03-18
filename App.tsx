@@ -9,24 +9,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import MeshManager from './src/core/MeshManager';
 import MeshRouter from './src/core/MeshRouter';
 import MeshStorage from './src/core/MeshStorage';
+import { Contact, Peer, Profile } from './src/types';
+import { Device } from 'react-native-ble-plx';
 
 import ChatView from './src/components/ChatView';
 import NetworkMap from './src/components/NetworkMap';
 
-interface Contact {
-  id: string;
-  name: string;
-}
-
-interface Peer {
-  id: string;
-  name?: string;
-}
-
-interface Profile {
-  id: string;
-  name: string;
-}
+// Types are now imported from src/types.ts
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('chats');
@@ -45,10 +34,14 @@ function AppContent() {
       setHasPermissions(granted);
 
       if (granted) {
-        (MeshManager as any).onDeviceFound = (foundPeers: Peer[]) => {
-          setPeers(foundPeers);
+        MeshManager.onDeviceFound = (foundDevices: Device[]) => {
+          const mappedPeers: Peer[] = foundDevices.map(d => ({
+            id: d.id,
+            name: d.name
+          }));
+          setPeers(mappedPeers);
         };
-        (MeshManager as any).startScanning();
+        MeshManager.startScanning();
       }
 
       loadRecentChats();
@@ -56,7 +49,7 @@ function AppContent() {
     init();
 
     return () => {
-      (MeshManager as any).stopScanning();
+      MeshManager.stopScanning();
     };
   }, []);
 

@@ -1,13 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Share2 } from 'lucide-react-native';
+import { Peer } from '../types';
 
-const { width } = Dimensions.get('window');
+interface NetworkMapProps {
+    peers: Peer[];
+}
 
 // This component visualizes the mesh nodes as a simple nodes-and-edges graph.
 // In a real app, this would use a physics engine or SVG lines to show actual hops.
 
-export default function NetworkMap({ peers }) {
+export default function NetworkMap({ peers }: NetworkMapProps) {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Mesh Topography</Text>

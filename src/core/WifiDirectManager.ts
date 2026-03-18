@@ -1,8 +1,8 @@
 import { 
     initialize, 
-    startDiscoveringPeers, 
-    stopDiscoveringPeers,
+    // @ts-ignore
     connect,
+    // @ts-ignore
     sendFile 
 } from 'react-native-wifi-p2p';
 
@@ -11,11 +11,13 @@ import {
 // enable it when a file transfer is explicitly requested.
 
 class WifiDirectManager {
+    private isInitialized: boolean;
+
     constructor() {
         this.isInitialized = false;
     }
 
-    async init() {
+    async init(): Promise<void> {
         try {
             await initialize();
             this.isInitialized = true;
@@ -25,7 +27,7 @@ class WifiDirectManager {
         }
     }
 
-    async transferFile(deviceAddress, filePath) {
+    async transferFile(deviceAddress: string, filePath: string): Promise<void> {
         if (!this.isInitialized) await this.init();
 
         console.log(`Negotiating Wi-Fi Direct connection to ${deviceAddress}...`);
