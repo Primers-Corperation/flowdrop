@@ -18,7 +18,8 @@
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "This app uses Bluetooth to find and communicate with nearby mesh nodes.",
         "NSBluetoothPeripheralUsageDescription": "This app uses Bluetooth to allow nearby mesh nodes to find and communicate with you.",
-        "NSLocationWhenInUseUsageDescription": "Location is required to scan for nearby Bluetooth devices."
+        "NSLocationWhenInUseUsageDescription": "Location is required to scan for nearby Bluetooth devices.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -37,7 +38,10 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_WIFI_STATE",
         "CHANGE_WIFI_STATE",
-        "NEARBY_WIFI_DEVICES"
+        "NEARBY_WIFI_DEVICES",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT"
       ]
     },
     "web": {
@@ -55,7 +59,15 @@
           "bluetoothAlwaysPermission": "Allow flowdrop to connect to nearby devices."
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.25"
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {
