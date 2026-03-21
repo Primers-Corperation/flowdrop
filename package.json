@@ -35,7 +35,8 @@
     "nostr-tools": "^2.23.3",
     "expo-crypto": "~14.0.0",
     "react-native-get-random-values": "^1.11.0",
-    "buffer": "^6.0.3"
+    "buffer": "^6.0.3",
+    "base-64": "^1.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
