@@ -1,13 +1,14 @@
 import { BleManager, Device, Characteristic } from 'react-native-ble-plx';
 import { PermissionsAndroid, Platform } from 'react-native';
 import { io, Socket } from 'socket.io-client';
-import Peripheral, { Service, Characteristic as PCharacteristic } from 'react-native-peripheral';
+// @ts-ignore
+import Peripheral from 'react-native-ble-peripheral';
 import MeshStorage from './MeshStorage';
-import { 
-  initialize, 
-  startDiscoveringPeers, 
-  stopDiscoveringPeers, 
-  subscribeOnPeersUpdates, 
+import {
+  initialize,
+  startDiscoveringPeers,
+  stopDiscoveringPeers,
+  subscribeOnPeersUpdates,
   connect as wifiConnect
 } from 'react-native-wifi-p2p';
 
@@ -67,17 +68,17 @@ class MeshManager {
     if (this.isScanning) return;
     this.isScanning = true;
 
-    // 1. BECOME THE LIGHTHOUSE (Advertise)
-    const ch = new PCharacteristic({
+    // 1. ADVERTISE as a Mesh Node (Peripheral Role)
+    const rxChar: any = {
         uuid: CHAT_CHARACTERISTIC_UUID,
         properties: ['read', 'write', 'notify'],
         permissions: ['readable', 'writable'],
-    });
+    };
 
-    const meshService = new Service({
+    const meshService: any = {
         uuid: MESH_SERVICE_UUID,
-        characteristics: [ch],
-    });
+        characteristics: [rxChar],
+    };
 
     Peripheral.addService(meshService).then(() => {
         Peripheral.startAdvertising({
