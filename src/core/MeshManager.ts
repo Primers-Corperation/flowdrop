@@ -69,24 +69,22 @@ class MeshManager {
     this.isScanning = true;
 
     // 1. ADVERTISE as a Mesh Node (Peripheral Role)
-    const rxChar: any = {
-        uuid: CHAT_CHARACTERISTIC_UUID,
-        properties: ['read', 'write', 'notify'],
-        permissions: ['readable', 'writable'],
-    };
-
-    const meshService: any = {
-        uuid: MESH_SERVICE_UUID,
-        characteristics: [rxChar],
-    };
-
-    Peripheral.addService(meshService).then(() => {
-        Peripheral.startAdvertising({
-            name: 'FlowDrop-Node',
-            serviceUuids: [MESH_SERVICE_UUID],
+    try {
+        Peripheral.setName('FlowDrop');
+        Peripheral.addService(MESH_SERVICE_UUID, true);
+        
+        // Properties: 2 (READ) | 8 (WRITE) | 16 (NOTIFY) = 26
+        // Permissions: 1 (READ) | 16 (WRITE) = 17
+        Peripheral.addCharacteristicToService(MESH_SERVICE_UUID, CHAT_CHARACTERISTIC_UUID, 17, 26);
+        
+        Peripheral.start().then((res: any) => {
+            console.log("Mesh Lighthouse Active.", res);
+        }).catch((err: any) => {
+            console.error("Lighthouse failed", err);
         });
-        console.log("Mesh Lighthouse Active.");
-    });
+    } catch(err) {
+        console.error("Peripheral crash avoided", err);
+    }
 
     // 2. SEARCH FOR PEERS (Scan)
     manager.startDeviceScan([MESH_SERVICE_UUID], null, (error, device) => {
