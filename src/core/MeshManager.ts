@@ -162,7 +162,7 @@ class MeshManager {
 
   async stopScanning(): Promise<void> {
     manager.stopDeviceScan();
-    Peripheral.stopAdvertising();
+    try { Peripheral.stop(); } catch(e) {}
     if (Platform.OS === 'android') stopDiscoveringPeers();
     this.isScanning = false;
   }
