@@ -8,7 +8,12 @@ const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 const PORT = 3000;
 
@@ -89,9 +94,20 @@ io.on('connection', (socket) => {
 
   // Private Message logic
   socket.on('private message', (data) => {
-    // data: { to: 'socketID', text: '...', senderId, senderName, timestamp }
-    const { to } = data;
-    io.to(to).emit('private message', data);
+    // data: { to: 'socketID' OR 'userId', text: '...', isByUserId: boolean }
+    const { to, isByUserId } = data;
+    
+    if (isByUserId) {
+        // Find socket for this persistent USER ID
+        for (let [socketId, user] of connectedUsers.entries()) {
+            if (user.userId === to) {
+                io.to(socketId).emit('private message', data);
+                break;
+            }
+        }
+    } else {
+        io.to(to).emit('private message', data);
+    }
   });
 
   // Private File Share logic

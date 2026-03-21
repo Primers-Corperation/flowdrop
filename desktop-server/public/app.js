@@ -39,7 +39,7 @@ const privateChatForm = document.getElementById('private-chat-form');
 const privateMessageInput = document.getElementById('private-message-input');
 const privateMessagesContainer = document.getElementById('private-messages-container');
 const activeChatAvatar = document.getElementById('active-chat-avatar');
-const activeChatName = document.getElementById('active-chat-Name');
+const activeChatName = document.getElementById('active-chat-name');
 const activeChatStatus = document.getElementById('active-chat-status');
 
 // Toast
@@ -182,7 +182,7 @@ socket.on('online users', (users) => {
             
             networkListHTML.push(`
                 <li class="list-item" onclick="openChat('${user.userId}', '${escapeHTML(user.name)}', '${user.id}')">
-                    <div class="avatar bg-blue">${user.name.substring(0,2).toUpperCase()}</div>
+                    <div class="avatar bg-blue">${(user.name || '??').substring(0,2).toUpperCase()}</div>
                     <div class="info">
                         <div class="name-row">
                             <span class="name">${escapeHTML(user.name)}</span>
@@ -302,7 +302,7 @@ saveProfileBtn.addEventListener('click', () => {
 });
 
 function updateAvatarUI(name, element) {
-    if(element) element.textContent = name.substring(0, 2).toUpperCase();
+    if(element) element.textContent = (name || '??').substring(0, 2).toUpperCase();
 }
 
 function showToast(msg) {
@@ -509,7 +509,7 @@ async function renderChatsList() {
             let msgPreview = lastMsg.text ? lastMsg.text : '📎 File shared';
             htmlList.push(`
                 <li class="list-item" onclick="openChat('${contact.id}', '${escapeHTML(contact.name)}')">
-                    <div class="avatar bg-primary">${contact.name.substring(0,2).toUpperCase()}</div>
+                    <div class="avatar bg-primary">${(contact.name || '??').substring(0,2).toUpperCase()}</div>
                     <div class="info">
                         <div class="name-row">
                             <span class="name">${escapeHTML(contact.name)}</span>
@@ -536,7 +536,7 @@ async function renderFriendsList() {
 
     const htmlList = contacts.map(c => `
         <li class="list-item" onclick="openChat('${c.id}', '${escapeHTML(c.name)}')">
-            <div class="avatar bg-primary">${c.name.substring(0,2).toUpperCase()}</div>
+            <div class="avatar bg-primary">${(c.name || '??').substring(0,2).toUpperCase()}</div>
             <div class="info">
                 <div class="name-row">
                     <span class="name">${escapeHTML(c.name)}</span>

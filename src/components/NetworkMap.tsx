@@ -1,20 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Share2 } from 'lucide-react-native';
 import { Peer } from '../types';
 
 interface NetworkMapProps {
     peers: Peer[];
+    onPeerSelect?: (peer: Peer) => void;
 }
 
-// This component visualizes the mesh nodes as a simple nodes-and-edges graph.
-// In a real app, this would use a physics engine or SVG lines to show actual hops.
-
-export default function NetworkMap({ peers }: NetworkMapProps) {
+export default function NetworkMap({ peers, onPeerSelect }: NetworkMapProps) {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Mesh Topography</Text>
-            
+
             <View style={styles.mapArea}>
                 {/* Self Node */}
                 <View style={[styles.node, styles.selfNode]}>
@@ -31,14 +29,17 @@ export default function NetworkMap({ peers }: NetworkMapProps) {
                     return (
                         <View key={peer.id} style={styles.peerContainer}>
                             {/* Connection line (simulated) */}
-                            <View style={[styles.line, { 
+                            <View style={[styles.line, {
                                 width: radius,
-                                transform: [{ rotate: `${angle}rad` }, { translateX: radius/2 }]
+                                transform: [{ rotate: `${angle}rad` }, { translateX: radius / 2 }]
                             }]} />
-                            
-                            <View style={[styles.node, { transform: [{ translateX: x }, { translateY: y }] }]}>
+
+                            <TouchableOpacity 
+                                style={[styles.node, { transform: [{ translateX: x }, { translateY: y }] }]}
+                                onPress={() => onPeerSelect?.(peer)}
+                            >
                                 <Share2 color="#fff" size={16} />
-                            </View>
+                            </TouchableOpacity>
                             <Text style={[styles.peerLabel, { transform: [{ translateX: x }, { translateY: y + 25 }] }]}>
                                 {peer.name || 'Peer'}
                             </Text>
@@ -49,11 +50,11 @@ export default function NetworkMap({ peers }: NetworkMapProps) {
 
             <View style={styles.legend}>
                 <View style={styles.legendItem}>
-                    <View style={[styles.legendDot, {backgroundColor: '#00A884'}]} />
+                    <View style={[styles.legendDot, { backgroundColor: '#00A884' }]} />
                     <Text style={styles.legendText}>Direct Peer</Text>
                 </View>
                 <View style={styles.legendItem}>
-                    <View style={[styles.legendDot, {backgroundColor: '#8696A0'}]} />
+                    <View style={[styles.legendDot, { backgroundColor: '#8696A0' }]} />
                     <Text style={styles.legendText}>Relay Node</Text>
                 </View>
             </View>

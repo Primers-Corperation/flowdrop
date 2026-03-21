@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -18,7 +18,9 @@
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "This app uses Bluetooth to find and communicate with nearby mesh nodes.",
         "NSBluetoothPeripheralUsageDescription": "This app uses Bluetooth to allow nearby mesh nodes to find and communicate with you.",
-        "NSLocationWhenInUseUsageDescription": "Location is required to scan for nearby Bluetooth devices.",
+        "NSLocationWhenInUseUsageDescription": "Location is required to scan for nearby mesh nodes.",
+        "NSCameraUsageDescription": "Allows taking photos for local status updates.",
+        "NSPhotoLibraryUsageDescription": "Select images to share over the mesh network.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -39,13 +41,17 @@
         "ACCESS_WIFI_STATE",
         "CHANGE_WIFI_STATE",
         "NEARBY_WIFI_DEVICES",
-        "android.permission.BLUETOOTH",
-        "android.permission.BLUETOOTH_ADMIN",
-        "android.permission.BLUETOOTH_CONNECT"
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "themeColor": "#00A884",
+      "backgroundColor": "#0B141A",
+      "description": "True offline, peer-to-peer mesh messaging for any device."
     },
     "plugins": [
       [
@@ -60,11 +66,20 @@
         }
       ],
       "expo-asset",
+      "./plugins/withWifiP2P",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share images over the local mesh.",
+          "cameraPermission": "The app uses your camera for snapping mesh-ready status updates."
+        }
+      ],
       [
         "expo-build-properties",
         {
           "android": {
-            "kotlinVersion": "1.9.25"
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35
           }
         }
       ]

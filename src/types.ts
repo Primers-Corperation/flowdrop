@@ -21,8 +21,19 @@ export interface Message {
   senderName: string;
   recipientId: string;
   text: string;
+  image?: string; // Base64 URI for photos over mesh
   timestamp: number;
   ttl: number;
   delivered: boolean;
   isEncrypted: boolean;
+  type: 'chat' | 'status' | 'ack';
+}
+
+export interface Story {
+    id: string;
+    userId: string;
+    userName: string;
+    imageUrl: string;
+    caption?: string;
+    timestamp: number;
 }

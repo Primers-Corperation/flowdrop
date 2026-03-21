@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
     View, Text, StyleSheet, TouchableOpacity, FlatList, 
-    TextInput, KeyboardAvoidingView, Platform 
+    TextInput, KeyboardAvoidingView, Platform, Image 
 } from 'react-native';
-import { ArrowLeft, Send, Paperclip, ShieldCheck, ShieldAlert } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { ArrowLeft, Send, Paperclip, ShieldCheck, ShieldAlert, Lock, CheckCheck } from 'lucide-react-native';
 import MeshRouter from '../core/MeshRouter';
 import MeshStorage from '../core/MeshStorage';
 import { Contact, Message } from '../types';
@@ -16,9 +17,23 @@ interface ChatViewProps {
 export default function ChatView({ contact, onBack }: ChatViewProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
+    const [myUserId, setMyUserId] = useState<string>('');
 
     useEffect(() => {
-        loadMessages();
+        async function init() {
+            const profile = await MeshStorage.getMyProfile();
+            setMyUserId(profile.id);
+            loadMessages();
+        }
+        init();
+        
+        MeshRouter.setOnMessageReceived(() => {
+            loadMessages();
+        });
+
+        return () => {
+            MeshRouter.setOnMessageReceived(() => {});
+        };
     }, [contact]);
 
     const loadMessages = async () => {
@@ -31,30 +46,44 @@ export default function ChatView({ contact, onBack }: ChatViewProps) {
 
     const handleSend = async () => {
         if (!inputText.trim()) return;
-        
-        // Pass the contact's public key for E2EE if we have it
         await MeshRouter.createMessage(contact.id, inputText, contact.publicKey);
         setInputText('');
         loadMessages();
+    };
+
+    const handlePickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            base64: true,
+            quality: 0.3, // Compressed for mesh transfer
+        });
+
+        if (!result.canceled && result.assets[0].base64) {
+            const base64Img = `data:image/jpeg;base64,${result.assets[0].base64}`;
+            await MeshRouter.createMessage(contact.id, '[Photo]', contact.publicKey, base64Img);
+            loadMessages();
+        }
     };
 
     return (
         <KeyboardAvoidingView 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.container}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={onBack} style={styles.backBtn}>
                     <ArrowLeft color="#fff" size={24} />
                     <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>{contact.name.substring(0,2).toUpperCase()}</Text>
+                        <Text style={styles.avatarText}>{contact.name.substring(0,1).toUpperCase()}</Text>
                     </View>
                 </TouchableOpacity>
                 <View style={styles.headerInfo}>
-                    <Text style={styles.name}>{contact.name}</Text>
+                    <Text style={styles.contactName}>{contact.name}</Text>
                     <View style={styles.statusRow}>
-                        <Text style={styles.status}>Mesh Active</Text>
+                        <Text style={styles.status}>Direct Mesh-Link</Text>
                         {contact.publicKey ? (
                             <ShieldCheck color="#00A884" size={12} style={{marginLeft: 5}} />
                         ) : (
@@ -64,39 +93,48 @@ export default function ChatView({ contact, onBack }: ChatViewProps) {
                 </View>
             </View>
 
+            {/* Premium Security Header */}
+            <View style={styles.securityBanner}>
+                <Lock size={12} color="#8696A0" />
+                <Text style={styles.securityText}>MESSAGES ARE END-TO-END ENCRYPTED</Text>
+            </View>
+
             {/* Messages */}
-            <FlatList 
+            <FlatList
                 data={messages}
-                keyExtractor={item => item.id}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.listContent}
                 renderItem={({ item }) => {
-                    const isMine = item.senderId !== contact.id;
+                    const isMe = item.senderId === myUserId;
                     return (
-                        <View style={[styles.msgWrapper, isMine ? styles.mine : styles.other]}>
-                            <View style={[styles.msgBubble, isMine ? styles.bubbleMine : styles.bubbleOther]}>
+                        <View style={[styles.msgWrapper, isMe ? styles.mine : styles.other]}>
+                            <View style={[styles.msgBubble, isMe ? styles.bubbleMine : styles.bubbleOther]}>
+                                {item.image && (
+                                    <Image source={{uri: item.image}} style={styles.bubbleImage} />
+                                )}
                                 <Text style={styles.msgText}>{item.text}</Text>
                                 <View style={styles.msgFooter}>
-                                    {item.isEncrypted && (
-                                        <ShieldCheck color="#8696A0" size={10} style={{marginRight: 4}} />
-                                    )}
                                     <Text style={styles.msgTime}>
                                         {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </Text>
+                                    {isMe && (
+                                        <CheckCheck size={14} color={item.delivered ? '#53bdeb' : '#8696A0'} style={{marginLeft: 4}} />
+                                    )}
                                 </View>
                             </View>
                         </View>
                     );
                 }}
-                contentContainerStyle={styles.listContent}
             />
 
-            {/* Input */}
+            {/* Input Area */}
             <View style={styles.inputArea}>
-                <TouchableOpacity style={styles.attachBtn}>
+                <TouchableOpacity style={styles.attachBtn} onPress={handlePickImage}>
                     <Paperclip color="#8696A0" size={24} />
                 </TouchableOpacity>
                 <TextInput 
                     style={styles.input}
-                    placeholder="Type an offline message..."
+                    placeholder="Message..."
                     placeholderTextColor="#8696A0"
                     value={inputText}
                     onChangeText={setInputText}
@@ -118,34 +156,70 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 10,
+        elevation: 4,
     },
     backBtn: { flexDirection: 'row', alignItems: 'center' },
     avatar: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: '#00A884',
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        backgroundColor: '#6b7c85',
         justifyContent: 'center',
         alignItems: 'center',
         marginLeft: 8,
     },
-    avatarText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+    avatarText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
     headerInfo: { marginLeft: 12 },
-    name: { color: '#E9EDEF', fontSize: 16, fontWeight: 'bold' },
+    contactName: { color: '#E9EDEF', fontSize: 16, fontWeight: 'bold' },
+    actionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 15,
+    },
     statusRow: { flexDirection: 'row', alignItems: 'center' },
-    status: { color: '#00A884', fontSize: 11 },
-    listContent: { padding: 15 },
-    msgWrapper: { marginBottom: 10, flexDirection: 'row' },
+    status: { color: '#8696A0', fontSize: 11 },
+    securityBanner: {
+        backgroundColor: '#182229',
+        paddingVertical: 8,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: '#222d34',
+    },
+    securityText: {
+        color: '#8696A0',
+        fontSize: 10,
+        fontWeight: '600',
+        marginLeft: 6,
+        letterSpacing: 0.5,
+    },
+    listContent: { padding: 15, paddingBottom: 30 },
+    msgWrapper: { marginBottom: 12, flexDirection: 'row' },
     mine: { justifyContent: 'flex-end' },
     other: { justifyContent: 'flex-start' },
     msgBubble: {
-        maxWidth: '80%',
-        padding: 10,
-        borderRadius: 10,
+        maxWidth: '85%',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 12,
     },
-    bubbleMine: { backgroundColor: '#005C4B' },
-    bubbleOther: { backgroundColor: '#202C33' },
-    msgText: { color: '#E9EDEF', fontSize: 15 },
+    bubbleMine: { 
+        backgroundColor: '#005C4B',
+        borderTopRightRadius: 2,
+    },
+    bubbleOther: { 
+        backgroundColor: '#202C33',
+        borderTopLeftRadius: 2,
+    },
+    msgText: { color: '#E9EDEF', fontSize: 15, lineHeight: 20 },
+    bubbleImage: {
+      width: 250,
+      height: 180,
+      borderRadius: 8,
+      marginBottom: 8,
+      backgroundColor: '#111B21'
+    },
     msgFooter: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -159,23 +233,25 @@ const styles = StyleSheet.create({
     inputArea: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
         backgroundColor: '#202C33',
     },
     input: {
         flex: 1,
         backgroundColor: '#2A3942',
-        borderRadius: 20,
-        paddingHorizontal: 15,
-        paddingVertical: 8,
+        borderRadius: 24,
+        paddingHorizontal: 18,
+        paddingVertical: 10,
         color: '#E9EDEF',
-        maxHeight: 100,
-        marginHorizontal: 10,
+        maxHeight: 120,
+        marginHorizontal: 8,
+        fontSize: 15,
     },
     sendBtn: {
-        width: 45,
-        height: 45,
-        borderRadius: 22.5,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
         backgroundColor: '#00A884',
         justifyContent: 'center',
         alignItems: 'center',
