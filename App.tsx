@@ -38,6 +38,20 @@ function AppContent() {
   const [hasPermissions, setHasPermissions] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [stories, setStories] = useState<Message[]>([]);
+  const [theme, setTheme] = useState<'diamond' | 'solaris' | 'neon' | 'ocean' | 'midnight'>('diamond');
+  const [font, setFont] = useState<'system' | 'inter' | 'monospace'>('system');
+
+  const themes = {
+    diamond: { bg: '#0B141A', accent: '#00A884', text: '#E9EDEF', sub: '#8696A0', card: '#111B21' },
+    solaris: { bg: '#F8F9FA', accent: '#0088CC', text: '#1C1F23', sub: '#667781', card: '#FFFFFF' },
+    neon: { bg: '#0A0A0F', accent: '#FF00FB', text: '#E0E0FF', sub: '#7A7A9E', card: '#14141F' },
+    ocean: { bg: '#0D1117', accent: '#2F81F7', text: '#C9D1D9', sub: '#8B949E', card: '#161B22' },
+    midnight: { bg: '#000000', accent: '#39FF14', text: '#FFFFFF', sub: '#444444', card: '#080808' }
+  };
+
+  const currentTheme = themes[theme];
+  const fontStyle = font === 'monospace' ? { fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' } : {};
+
 
   useEffect(() => {
     async function init() {
@@ -108,7 +122,13 @@ function AppContent() {
   }
 
   if (isSettingsOpen) {
-    return <SettingsView onBack={() => setIsSettingsOpen(false)} />;
+    return <SettingsView 
+      theme={theme} 
+      setTheme={setTheme} 
+      font={font} 
+      setFont={setFont} 
+      onBack={() => setIsSettingsOpen(false)} 
+    />;
   }
 
   if (selectedChat) {
@@ -125,16 +145,16 @@ function AppContent() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#111B21" />
+      <StatusBar barStyle="light-content" backgroundColor={currentTheme.card} />
       
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, {backgroundColor: currentTheme.card}]}>
         <View>
-          <Text style={styles.logo}>FlowDrop</Text>
+          <Text style={[styles.logo, {color: currentTheme.accent}]}>FlowDrop</Text>
           <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 3}}>
-            <View style={[styles.pulseCircle, {backgroundColor: hasPermissions ? '#00A884' : '#E94242'}]} />
-            <Text style={{color: '#8696A0', fontSize: 11, fontWeight: '600', letterSpacing: 0.5}}>
-                {hasPermissions ? 'MESH-NET ACTIVE' : 'PERMISSIONS REQUIRED'}
+            <View style={[styles.pulseCircle, {backgroundColor: hasPermissions ? currentTheme.accent : '#E94242'}]} />
+            <Text style={{color: currentTheme.sub, fontSize: 11, fontWeight: '700', letterSpacing: 0.5}}>
+                {hasPermissions ? 'SECURE MESH ACTIVE' : 'RADIO ACCESS REQUIRED'}
             </Text>
           </View>
         </View>
@@ -142,7 +162,7 @@ function AppContent() {
           style={styles.settingsBtn}
           onPress={() => setIsSettingsOpen(true)}
         >
-          <Settings color="#8696A0" size={24} />
+          <Settings color={currentTheme.sub} size={24} />
         </TouchableOpacity>
       </View>
 
@@ -157,22 +177,22 @@ function AppContent() {
             keyExtractor={item => item.id}
             renderItem={({ item }) => (
               <TouchableOpacity 
-                style={styles.chatItem}
+                style={[styles.chatItem, {borderBottomColor: currentTheme.bg}]}
                 onPress={() => setSelectedChat(item)}
               >
-                <View style={styles.avatar}>
+                <View style={[styles.avatar, {backgroundColor: currentTheme.accent}]}>
                     <Text style={styles.avatarText}>{(item.name || '??').substring(0,2).toUpperCase()}</Text>
                 </View>
                 <View style={styles.chatInfo}>
-                    <Text style={styles.chatName}>{item.name}</Text>
-                    <Text style={styles.lastMsg}>Offline via Mesh</Text>
+                    <Text style={[styles.chatName, {color: currentTheme.text}]}>{item.name}</Text>
+                    <Text style={[styles.lastMsg, {color: currentTheme.sub}]}>Ready to Chat</Text>
                 </View>
               </TouchableOpacity>
             )}
             ListEmptyComponent={
               <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>No local peers found yet.</Text>
-                <Text style={styles.emptySub}>Move closer to other nodes or scan the map!</Text>
+                <Text style={[styles.emptyText, {color: currentTheme.text}]}>No one nearby right now.</Text>
+                <Text style={[styles.emptySub, {color: currentTheme.sub}]}>Try moving to a more crowded area!</Text>
               </View>
             }
           />
@@ -208,28 +228,28 @@ function AppContent() {
                     </View>
                 </TouchableOpacity>
 
-                <Text style={[styles.sectionTitle, {marginTop: 20}]}>RECENT RIPPLES</Text>
+                <Text style={[styles.sectionTitle, {marginTop: 20, color: currentTheme.accent}]}>LATEST RIPPLES</Text>
                 {stories.length > 0 ? (
                     stories.map(story => (
                         <TouchableOpacity key={story.id} style={styles.statusTile}>
-                            <View style={[styles.avatar, {backgroundColor: '#111B21', borderWidth: 2, borderColor: '#00A884'}]}>
+                            <View style={[styles.avatar, {backgroundColor: currentTheme.bg, borderWidth: 2, borderColor: currentTheme.accent, width: 54, height: 54, borderRadius: 27}]}>
                                 {story.image ? (
-                                    <Image source={{uri: story.image}} style={{width: 44, height: 44, borderRadius: 22}} />
+                                    <Image source={{uri: story.image}} style={{width: 50, height: 50, borderRadius: 25}} />
                                 ) : (
-                                    <Text style={styles.avatarText}>{story.senderName.substring(0,1)}</Text>
+                                    <Text style={[styles.avatarText, {color: currentTheme.accent}]}>{story.senderName.substring(0,1)}</Text>
                                 )}
                             </View>
-                            <View style={{marginLeft: 15}}>
-                                <Text style={styles.contactName}>{story.senderName}</Text>
-                                <Text style={styles.lastMsg}>{new Date(story.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
+                            <View style={{marginLeft: 15, flex: 1}}>
+                                <Text style={[styles.contactName, {color: currentTheme.text}]}>{story.senderName}</Text>
+                                <Text style={[styles.lastMsg, {color: currentTheme.sub}]}>Posted {new Date(story.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
                             </View>
                         </TouchableOpacity>
                     ))
                 ) : (
                     <View style={styles.emptyState}>
-                        <Radio color="#3B4A54" size={48} />
-                        <Text style={styles.emptyText}>No status updates found in range.</Text>
-                        <Text style={styles.emptySub}>Connect via Bluetooth to see what's happening.</Text>
+                        <Radio color={currentTheme.sub} size={48} />
+                        <Text style={[styles.emptyText, {color: currentTheme.text}]}>No stories shared nearby yet.</Text>
+                        <Text style={[styles.emptySub, {color: currentTheme.sub}]}>Be the first to share a Ripple!</Text>
                     </View>
                 )}
             </ScrollView>
@@ -274,26 +294,22 @@ function AppContent() {
       )}
 
       {/* Tab Bar */}
-         <View style={styles.tabBar}>
+         <View style={[styles.tabBar, {backgroundColor: currentTheme.card, borderTopColor: currentTheme.bg}]}>
         <TouchableOpacity onPress={() => setActiveTab('chats')} style={styles.tab}>
-          <MessageSquare color={activeTab === 'chats' ? '#00A884' : '#8696A0'} size={24} />
-          <Text style={[styles.tabLabel, activeTab === 'chats' && styles.activeTabLabel]}>Chats</Text>
+          <MessageSquare color={activeTab === 'chats' ? currentTheme.accent : currentTheme.sub} size={24} />
+          <Text style={[styles.tabLabel, activeTab === 'chats' ? {color: currentTheme.accent} : {color: currentTheme.sub}]}>Chats</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setActiveTab('status')} style={styles.tab}>
-          <CircleDashed color={activeTab === 'status' ? '#00A884' : '#8696A0'} size={24} />
-          <Text style={[styles.tabLabel, activeTab === 'status' && styles.activeTabLabel]}>Status</Text>
+          <CircleDashed color={activeTab === 'status' ? currentTheme.accent : currentTheme.sub} size={24} />
+          <Text style={[styles.tabLabel, activeTab === 'status' ? {color: currentTheme.accent} : {color: currentTheme.sub}]}>Status</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setActiveTab('network')} style={styles.tab}>
-          <Share2 color={activeTab === 'network' ? '#00A884' : '#8696A0'} size={24} />
-          <Text style={[styles.tabLabel, activeTab === 'network' && styles.activeTabLabel]}>Network</Text>
+          <Share2 color={activeTab === 'network' ? currentTheme.accent : currentTheme.sub} size={24} />
+          <Text style={[styles.tabLabel, activeTab === 'network' ? {color: currentTheme.accent} : {color: currentTheme.sub}]}>Network</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.tab} 
-          onPress={() => setActiveTab('profile')}
-        >
-          <Users color={activeTab === 'profile' ? '#00A884' : '#8696A0'} />
-           <Text style={[styles.tabLabel, activeTab === 'profile' && styles.activeTabLabel]}>Profile</Text>
+        <TouchableOpacity onPress={() => setActiveTab('profile')} style={styles.tab}>
+          <Users color={activeTab === 'profile' ? currentTheme.accent : currentTheme.sub} />
+           <Text style={[styles.tabLabel, activeTab === 'profile' ? {color: currentTheme.accent} : {color: currentTheme.sub}]}>Profile</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

@@ -11,14 +11,28 @@ import MeshStorage from '../core/MeshStorage';
 import { Profile } from '../types';
 
 interface SettingsViewProps {
+    theme: 'diamond' | 'solaris' | 'neon' | 'ocean' | 'midnight';
+    setTheme: (t: any) => void;
+    font: 'system' | 'inter' | 'monospace';
+    setFont: (f: any) => void;
     onBack: () => void;
 }
 
-export default function SettingsView({ onBack }: SettingsViewProps) {
+export default function SettingsView({ theme, setTheme, font, setFont, onBack }: SettingsViewProps) {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [name, setName] = useState('');
     const [stealthMode, setStealthMode] = useState(false);
     const [relayEnabled, setRelayEnabled] = useState(true);
+
+    const themes = {
+        diamond: { bg: '#0B141A', accent: '#00A884', text: '#E9EDEF', sub: '#8696A0', card: '#111B21' },
+        solaris: { bg: '#F8F9FA', accent: '#0088CC', text: '#1C1F23', sub: '#667781', card: '#FFFFFF' },
+        neon: { bg: '#0A0A0F', accent: '#FF00FB', text: '#E0E0FF', sub: '#7A7A9E', card: '#14141F' },
+        ocean: { bg: '#0D1117', accent: '#2F81F7', text: '#C9D1D9', sub: '#8B949E', card: '#161B22' },
+        midnight: { bg: '#000000', accent: '#39FF14', text: '#FFFFFF', sub: '#444444', card: '#080808' }
+    };
+    const c = themes[theme];
+
 
     useEffect(() => {
         loadProfile();
@@ -36,20 +50,20 @@ export default function SettingsView({ onBack }: SettingsViewProps) {
         Alert.alert('Profile Updated', 'Your changes have been broadcasted to the mesh.');
     };
 
-    const SettingItem = ({ icon: Icon, title, subtitle, value, onToggle }: any) => (
-        <View style={styles.item}>
+    const SettingItem = ({ icon: Icon, title, subtitle, value, onToggle, c }: any) => (
+        <View style={[styles.item, {borderBottomColor: c.bg}]}>
             <View style={styles.itemIcon}>
-                <Icon color="#8696A0" size={22} />
+                <Icon color={c.sub} size={22} />
             </View>
             <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>{title}</Text>
-                {subtitle && <Text style={styles.itemSubtitle}>{subtitle}</Text>}
+                <Text style={[styles.itemTitle, {color: c.text}]}>{title}</Text>
+                {subtitle && <Text style={[styles.itemSubtitle, {color: c.sub}]}>{subtitle}</Text>}
             </View>
             {onToggle !== undefined ? (
                 <Switch 
                     value={value} 
                     onValueChange={onToggle}
-                    trackColor={{ false: '#334049', true: '#00A884' }}
+                    trackColor={{ false: '#334049', true: c.accent }}
                     thumbColor={value ? '#fff' : '#8696A0'}
                 />
             ) : null}
@@ -59,10 +73,10 @@ export default function SettingsView({ onBack }: SettingsViewProps) {
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, {backgroundColor: c.card}]}>
                 <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-                    <ArrowLeft color="#fff" size={24} />
-                    <Text style={styles.headerTitle}>Settings</Text>
+                    <ArrowLeft color={c.accent} size={24} />
+                    <Text style={[styles.headerTitle, {color: c.text}]}>Settings</Text>
                 </TouchableOpacity>
             </View>
 
@@ -85,22 +99,67 @@ export default function SettingsView({ onBack }: SettingsViewProps) {
                     </View>
                 </View>
 
+                {/* Visual Appearance */}
+                <Text style={[styles.sectionTitle, {color: c.accent}]}>DISPLAY & THEMES</Text>
+                <View style={[styles.section, {backgroundColor: c.card}]}>
+                    <View style={{padding: 15}}>
+                        <Text style={[styles.itemTitle, {color: c.text, marginBottom: 10}]}>Choose Theme</Text>
+                        <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                            {Object.keys(themes).map((t: any) => (
+                                <TouchableOpacity 
+                                    key={t}
+                                    onPress={() => setTheme(t)}
+                                    style={{
+                                        width: 45, height: 45, borderRadius: 22,
+                                        backgroundColor: (themes as any)[t].bg,
+                                        borderWidth: theme === t ? 3 : 0,
+                                        borderColor: c.accent,
+                                        justifyContent: 'center', alignItems: 'center'
+                                    }}
+                                >
+                                    <View style={{width: 20, height: 20, borderRadius: 10, backgroundColor: (themes as any)[t].accent}} />
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+                    <View style={{padding: 15, borderTopWidth: 0.5, borderTopColor: c.bg}}>
+                        <Text style={[styles.itemTitle, {color: c.text, marginBottom: 10}]}>App Font</Text>
+                        <View style={{flexDirection: 'row'}}>
+                            {['system', 'monospace'].map((f: any) => (
+                                <TouchableOpacity 
+                                    key={f}
+                                    onPress={() => setFont(f)}
+                                    style={{
+                                        paddingHorizontal: 15, paddingVertical: 8, 
+                                        borderRadius: 20, marginRight: 10,
+                                        backgroundColor: font === f ? c.accent : c.bg
+                                    }}
+                                >
+                                    <Text style={{color: font === f ? '#fff' : c.text, textTransform: 'capitalize'}}>{f}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+                </View>
+
                 {/* Mesh Performance Section */}
-                <Text style={styles.sectionTitle}>MESH NETWORK</Text>
-                <View style={styles.section}>
+                <Text style={[styles.sectionTitle, {color: c.accent}]}>CONNECTIVITY</Text>
+                <View style={[styles.section, {backgroundColor: c.card}]}>
                     <SettingItem 
                         icon={Radio} 
                         title="Stealth Mode" 
-                        subtitle="Remain invisible to non-contacts."
+                        subtitle="Only show up to people you know."
                         value={stealthMode}
                         onToggle={setStealthMode}
+                        c={c}
                     />
                     <SettingItem 
                         icon={Cpu} 
-                        title="Active Relaying" 
-                        subtitle="Help route messages for others."
+                        title="Mesh Booster" 
+                        subtitle="Help strengthen the network."
                         value={relayEnabled}
                         onToggle={setRelayEnabled}
+                        c={c}
                     />
                 </View>
 
@@ -142,10 +201,10 @@ export default function SettingsView({ onBack }: SettingsViewProps) {
                 </View>
 
                 {/* Footer info */}
-                <View style={styles.footer}>
-                    <Text style={styles.footerText}>FlowDrop v1.2.0 (Diamond Mesh)</Text>
-                    <Text style={styles.footerText}>Made by Primers Corporation</Text>
-                    <Text style={styles.footerText}>Self-Sovereign Messaging</Text>
+                <View style={[styles.footer, {backgroundColor: c.bg}]}>
+                    <Text style={[styles.footerText, {color: c.sub}]}>FlowDrop v1.2.0 (Diamond Mesh)</Text>
+                    <Text style={[styles.footerText, {color: c.accent}]}>Made by Primers Corporation</Text>
+                    <Text style={[styles.footerText, {color: c.sub}]}>Self-Sovereign Messaging</Text>
                 </View>
                 <View style={{height: 50}} />
             </ScrollView>
