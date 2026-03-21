@@ -1,0 +1,57 @@
+diff --git a/node_modules/react-native-ble-peripheral/android/build.gradle b/node_modules/react-native-ble-peripheral/android/build.gradle
+index 9b5638c..037b443 100644
+--- a/node_modules/react-native-ble-peripheral/android/build.gradle
++++ b/node_modules/react-native-ble-peripheral/android/build.gradle
+@@ -1,22 +1,28 @@
++def safeExtGet(prop, fallback) {
++    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
++}
++
+ apply plugin: "com.android.library"
+ 
++def DEFAULT_COMPILE_SDK_VERSION = 35
++def DEFAULT_BUILD_TOOLS_VERSION = "34.0.0"
++def DEFAULT_MIN_SDK_VERSION = 21
++def DEFAULT_TARGET_SDK_VERSION = 34
++
+ android {
+-    compileSdkVersion 23
+-    buildToolsVersion "23.0.3"
++    namespace "com.himelbrand.ble.peripheral"
++    compileSdkVersion safeExtGet('compileSdkVersion', DEFAULT_COMPILE_SDK_VERSION)
++    buildToolsVersion safeExtGet('buildToolsVersion', DEFAULT_BUILD_TOOLS_VERSION)
+ 
+     defaultConfig {
+-        minSdkVersion 23
+-        targetSdkVersion 23
++        minSdkVersion safeExtGet('minSdkVersion', DEFAULT_MIN_SDK_VERSION)
++        targetSdkVersion safeExtGet('targetSdkVersion', DEFAULT_TARGET_SDK_VERSION)
+         versionCode 1
+         versionName "1.0"
+-        ndk {
+-            abiFilters "armeabi-v7a", "x86"
+-        }
+     }
+ }
++
+ dependencies {
+-    compile fileTree(dir: "libs", include: ["*.jar"])
+-    compile "com.android.support:appcompat-v7:23.0.1"
+-    compile "com.facebook.react:react-native:+"  // From node_modules
++    implementation fileTree(dir: "libs", include: ["*.jar"])
++    implementation "com.facebook.react:react-native:+"  // From node_modules
+ }
+-
+diff --git a/node_modules/react-native-ble-peripheral/android/src/main/java/com/himelbrand/ble/peripheral/RNBLEModule.java b/node_modules/react-native-ble-peripheral/android/src/main/java/com/himelbrand/ble/peripheral/RNBLEModule.java
+index 71a5f60..9d13b54 100644
+--- a/node_modules/react-native-ble-peripheral/android/src/main/java/com/himelbrand/ble/peripheral/RNBLEModule.java
++++ b/node_modules/react-native-ble-peripheral/android/src/main/java/com/himelbrand/ble/peripheral/RNBLEModule.java
+@@ -22,7 +22,7 @@ import android.content.Context;
+ import android.os.Bundle;
+ import android.os.Handler;
+ import android.os.ParcelUuid;
+-import android.support.v7.app.AppCompatActivity;
++
+ import android.text.TextUtils;
+ import android.util.Log;
+ 
