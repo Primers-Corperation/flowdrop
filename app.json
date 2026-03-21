@@ -1,11 +1,12 @@
 {
   "expo": {
-    "name": "flowdrop",
+    "name": "FlowDrop",
     "slug": "flowdrop",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
+    "owner": "primers_corp",
     "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
