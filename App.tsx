@@ -30,6 +30,7 @@ import SettingsView from './src/components/SettingsView';
 import { Contact, Peer, Profile, Message } from './src/types';
 
 function AppContent() {
+  const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState<'chats' | 'network' | 'profile' | 'status'>('chats');
   const [peers, setPeers] = useState<Peer[]>([]);
   const [recentChats, setRecentChats] = useState<Contact[]>([]);
@@ -54,6 +55,9 @@ function AppContent() {
 
 
   useEffect(() => {
+    // Splash Screen Timer mimicking native WhatsApp/Facebook loads
+    setTimeout(() => setShowSplash(false), 2000);
+
     async function init() {
       try {
         console.log("PWA: Initializing FlowDrop Core...");
@@ -113,10 +117,16 @@ function AppContent() {
       setStories(latestStories);
   };
 
-  if (!profile) {
+  if (showSplash || !profile) {
     return (
-      <View style={[styles.container, styles.centered]}>
-        <Text style={{color: '#00A884'}}>Loading FlowDrop...</Text>
+      <View style={[styles.container, styles.centered, {backgroundColor: currentTheme?.bg || '#0B141A'}]}>
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <Text style={{color: currentTheme?.accent || '#00A884', fontSize: 40, fontWeight: 'bold'}}>FlowDrop</Text>
+        </View>
+        <View style={{marginBottom: 40, alignItems: 'center'}}>
+            <Text style={{color: currentTheme?.sub || '#8696A0', fontSize: 12}}>from</Text>
+            <Text style={{color: currentTheme?.accent || '#00A884', fontSize: 16, fontWeight: 'bold', letterSpacing: 2}}>PRIMERS CORP</Text>
+        </View>
       </View>
     );
   }
@@ -150,13 +160,19 @@ function AppContent() {
       {/* Header */}
       <View style={[styles.header, {backgroundColor: currentTheme.card}]}>
         <View>
-          <Text style={[styles.logo, {color: currentTheme.accent}]}>FlowDrop</Text>
-          <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 3}}>
-            <View style={[styles.pulseCircle, {backgroundColor: hasPermissions ? currentTheme.accent : '#E94242'}]} />
-            <Text style={{color: currentTheme.sub, fontSize: 11, fontWeight: '700', letterSpacing: 0.5}}>
-                {hasPermissions ? 'SECURE MESH ACTIVE' : 'RADIO ACCESS REQUIRED'}
-            </Text>
-          </View>
+          {activeTab === 'chats' ? (
+            <>
+              <Text style={[styles.logo, {color: currentTheme.text}]}>Chats</Text>
+              <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 3}}>
+                <View style={[styles.pulseCircle, {backgroundColor: hasPermissions ? currentTheme.accent : '#E94242'}]} />
+                <Text style={{color: currentTheme.sub, fontSize: 11, fontWeight: '600'}}>
+                    {hasPermissions ? 'Secure Mesh Active' : 'Radio Access Required'}
+                </Text>
+              </View>
+            </>
+          ) : (
+            <Text style={[styles.logo, {color: currentTheme.text, textTransform: 'capitalize'}]}>{activeTab}</Text>
+          )}
         </View>
         <TouchableOpacity 
           style={styles.settingsBtn}
@@ -215,7 +231,8 @@ function AppContent() {
                         if (!result.canceled && result.assets[0].base64) {
                             const b64 = `data:image/jpeg;base64,${result.assets[0].base64}`;
                             await MeshRouter.createStatus('Check out my Ripple!', b64);
-                            Alert.alert('Ripple Sent!', 'Your status is now ripples through the local mesh.');
+                            loadStories(); // Force UI to instantly render the new status
+                            Alert.alert('Ripple Sent!', 'Your status is now rippling through the local mesh.');
                         }
                     }}
                 >
