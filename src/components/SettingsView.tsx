@@ -191,6 +191,7 @@ export default function SettingsView({ theme, setTheme, font, setFont, onBack }:
                         subtitle="Auto-cleanup relay traffic weekly."
                         value={true}
                         onToggle={() => {}}
+                        c={c}
                     />
                     <TouchableOpacity style={styles.actionItem} onPress={() => MeshStorage.pruneHistory()}>
                         <Info color="#00A884" size={22} />

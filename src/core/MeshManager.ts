@@ -87,9 +87,9 @@ class MeshManager {
     }
 
     // 2. SEARCH FOR PEERS (Scan)
-    manager.startDeviceScan([MESH_SERVICE_UUID], null, (error, device) => {
-        if (device && !this._devices.has(device.id)) {
-            console.log(`Found Peer: ${device.id}`);
+    manager.startDeviceScan(null, { allowDuplicates: false }, (error, device) => {
+        if (device && device.name && device.name.includes('FlowDrop') && !this._devices.has(device.id)) {
+            console.log(`Found FlowDrop Peer: ${device.id}`);
             this._devices.set(device.id, { id: device.id, name: device.name || 'Mesh Node', type: 'ble' });
             if (this.onDeviceFound) this.onDeviceFound(this.devices);
             this.connectToPeer(device.id);
