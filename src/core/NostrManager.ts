@@ -1,6 +1,7 @@
 import { SimplePool, finalizeEvent, Event } from 'nostr-tools';
 import 'react-native-get-random-values';
 import { Buffer } from 'buffer';
+declare var global: any;
 (global as any).Buffer = Buffer;
 
 import MeshStorage from './MeshStorage';
@@ -54,7 +55,7 @@ class NostrManager {
                 kinds: [1],
                 '#t': ['flowdrop_ripple'],
                 since: Math.floor(Date.now() / 1000) - 3600
-            }],
+            }] as any,
             {
                 onevent: (event: any) => {
                     try {
