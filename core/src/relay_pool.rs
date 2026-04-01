@@ -43,7 +43,7 @@ impl RelayPool {
 
         if let Some(runtime) = get_runtime() {
             runtime.spawn(async move {
-                let url = match Url::parse(&url_str) {
+                let url: url::Url = match Url::parse(&url_str) {
                     Ok(u) => u,
                     Err(e) => {
                         println!("FATAL: Invalid Relay URL {}: {:?}", url_str, e);
@@ -56,6 +56,7 @@ impl RelayPool {
 
                     match connect_async(url.clone()).await {
                         Ok((mut ws_stream, _)) => {
+                            let mut ws_stream: tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>> = ws_stream;
                             {
                                 let mut r = relays_clone.lock().unwrap();
                                 if let Some(entry) = r.get_mut(&url_str) {

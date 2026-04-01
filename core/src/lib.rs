@@ -21,8 +21,8 @@ pub static CANCEL_TOKEN: OnceLock<CancellationToken> = OnceLock::new();
 pub static GEOHASH_ENGINE: OnceLock<Mutex<GeohashEngine>> = OnceLock::new();
 
 /// Utility for other modules to fire JNI callbacks via the global JVM handle
-pub fn get_jvm() -> Option<JavaVM> {
-    JVM.get().cloned()
+pub fn get_jvm() -> Option<&'static JavaVM> {
+    JVM.get()
 }
 
 /// Helper to get a reference to the active Tokio runtime
@@ -216,7 +216,10 @@ pub extern "system" fn Java_com_flowdrop_core_RustCore_handleIrcCommand(
     _class: JClass,
     input: JString,
 ) -> jstring {
-    let input: String = env.get_string(&input).unwrap_or_default().into();
+    let input: String = match env.get_string(&input) {
+        Ok(s) => s.into(),
+        Err(_) => return ptr::null_mut(),
+    };
     
     let result = if let Some(mut engine) = GEOHASH_ENGINE.get().and_then(|m| m.lock().ok()) {
         geohash::handle_irc_input(&mut engine, &input)
