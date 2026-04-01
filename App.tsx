@@ -31,7 +31,7 @@ import { Contact, Peer, Profile, Message } from './src/types';
 
 function AppContent() {
   const [showSplash, setShowSplash] = useState(true);
-  const [activeTab, setActiveTab] = useState<'chats' | 'network' | 'profile' | 'status'>('chats');
+  const [activeTab, setActiveTab] = useState<'chats' | 'network' | 'profile' | 'location'>('chats');
   const [peers, setPeers] = useState<Peer[]>([]);
   const [recentChats, setRecentChats] = useState<Contact[]>([]);
   const [selectedChat, setSelectedChat] = useState<Contact | null>(null);
@@ -171,7 +171,9 @@ function AppContent() {
               </View>
             </>
           ) : (
-            <Text style={[styles.logo, {color: currentTheme.text, textTransform: 'capitalize'}]}>{activeTab}</Text>
+            <Text style={[styles.logo, {color: currentTheme.text, textTransform: 'capitalize'}]}>
+              {activeTab === 'location' ? 'Location Channels' : activeTab}
+            </Text>
           )}
         </View>
         <TouchableOpacity 
@@ -215,10 +217,10 @@ function AppContent() {
         </View>
       )}
 
-        {/* Status Tab (Stories) */}
-        {activeTab === 'status' && (
+        {/* Location Channels Tab */}
+        {activeTab === 'location' && (
             <ScrollView style={{flex: 1, padding: 15}}>
-                <Text style={styles.sectionTitle}>MY STATUS</Text>
+                <Text style={styles.sectionTitle}>GEOHASH CHANNELS</Text>
                 <TouchableOpacity 
                     style={styles.statusTile}
                     onPress={async () => {
@@ -240,12 +242,12 @@ function AppContent() {
                         <MessageCircle color="#00A884" size={20} />
                     </View>
                     <View style={{marginLeft: 15}}>
-                        <Text style={styles.contactName}>My Mesh Ripple</Text>
-                        <Text style={styles.lastMsg}>Tap to update status</Text>
+                        <Text style={styles.contactName}>Neighborhood #dr5rs</Text>
+                        <Text style={styles.lastMsg}>Tap to post to nearby relays</Text>
                     </View>
                 </TouchableOpacity>
 
-                <Text style={[styles.sectionTitle, {marginTop: 20, color: currentTheme.accent}]}>LATEST RIPPLES</Text>
+                <Text style={[styles.sectionTitle, {marginTop: 20, color: currentTheme.accent}]}>GLOBAL NOSTR FEED</Text>
                 {stories.length > 0 ? (
                     stories.map(story => (
                         <TouchableOpacity key={story.id} style={styles.statusTile}>
@@ -316,9 +318,9 @@ function AppContent() {
           <MessageSquare color={activeTab === 'chats' ? currentTheme.accent : currentTheme.sub} size={24} />
           <Text style={[styles.tabLabel, activeTab === 'chats' ? {color: currentTheme.accent} : {color: currentTheme.sub}]}>Chats</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setActiveTab('status')} style={styles.tab}>
-          <CircleDashed color={activeTab === 'status' ? currentTheme.accent : currentTheme.sub} size={24} />
-          <Text style={[styles.tabLabel, activeTab === 'status' ? {color: currentTheme.accent} : {color: currentTheme.sub}]}>Status</Text>
+        <TouchableOpacity onPress={() => setActiveTab('location')} style={styles.tab}>
+          <Globe color={activeTab === 'location' ? currentTheme.accent : currentTheme.sub} size={24} />
+          <Text style={[styles.tabLabel, activeTab === 'location' ? {color: currentTheme.accent} : {color: currentTheme.sub}]}>Channels</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setActiveTab('network')} style={styles.tab}>
           <Share2 color={activeTab === 'network' ? currentTheme.accent : currentTheme.sub} size={24} />

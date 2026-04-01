@@ -64,6 +64,14 @@ class MeshStorage {
       await AsyncStorage.setItem(MESSAGES_KEY, JSON.stringify(filtered));
   }
 
+  async clearMessagesWithContact(contactId: string): Promise<void> {
+      const messages = await this.getMessages();
+      const filtered = messages.filter(m => 
+          !(m.senderId === contactId || m.recipientId === contactId)
+      );
+      await AsyncStorage.setItem(MESSAGES_KEY, JSON.stringify(filtered));
+  }
+
   async getMessages(recipientId?: string): Promise<Message[]> {
     const data = await AsyncStorage.getItem(MESSAGES_KEY);
     const msgs: Message[] = data ? JSON.parse(data) : [];

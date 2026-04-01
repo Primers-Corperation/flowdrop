@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    View, Text, StyleSheet, TouchableOpacity, ScrollView, 
-    Switch, TextInput, Alert, Platform 
+import {
+    View, Text, StyleSheet, TouchableOpacity, ScrollView,
+    Switch, TextInput, Alert, Platform
 } from 'react-native';
-import { 
-    Settings, User, Shield, HardDrive, Info, 
-    ArrowLeft, LogOut, Cpu, Radio, Hash 
+import {
+    Settings, User, Shield, HardDrive, Info,
+    ArrowLeft, LogOut, Cpu, Radio, Hash, ShieldAlert
 } from 'lucide-react-native';
 import MeshStorage from '../core/MeshStorage';
 import { Profile } from '../types';
@@ -51,17 +51,17 @@ export default function SettingsView({ theme, setTheme, font, setFont, onBack }:
     };
 
     const SettingItem = ({ icon: Icon, title, subtitle, value, onToggle, c }: any) => (
-        <View style={[styles.item, {borderBottomColor: c.bg}]}>
+        <View style={[styles.item, { borderBottomColor: c.bg }]}>
             <View style={styles.itemIcon}>
                 <Icon color={c.sub} size={22} />
             </View>
             <View style={styles.itemContent}>
-                <Text style={[styles.itemTitle, {color: c.text}]}>{title}</Text>
-                {subtitle && <Text style={[styles.itemSubtitle, {color: c.sub}]}>{subtitle}</Text>}
+                <Text style={[styles.itemTitle, { color: c.text }]}>{title}</Text>
+                {subtitle && <Text style={[styles.itemSubtitle, { color: c.sub }]}>{subtitle}</Text>}
             </View>
             {onToggle !== undefined ? (
-                <Switch 
-                    value={value} 
+                <Switch
+                    value={value}
                     onValueChange={onToggle}
                     trackColor={{ false: '#334049', true: c.accent }}
                     thumbColor={value ? '#fff' : '#8696A0'}
@@ -73,10 +73,10 @@ export default function SettingsView({ theme, setTheme, font, setFont, onBack }:
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={[styles.header, {backgroundColor: c.card}]}>
+            <View style={[styles.header, { backgroundColor: c.card }]}>
                 <TouchableOpacity onPress={onBack} style={styles.backBtn}>
                     <ArrowLeft color={c.accent} size={24} />
-                    <Text style={[styles.headerTitle, {color: c.text}]}>Settings</Text>
+                    <Text style={[styles.headerTitle, { color: c.text }]}>Settings</Text>
                 </TouchableOpacity>
             </View>
 
@@ -85,9 +85,9 @@ export default function SettingsView({ theme, setTheme, font, setFont, onBack }:
                 <View style={styles.section}>
                     <View style={styles.profileBox}>
                         <View style={styles.avatarBig}>
-                            <Text style={styles.avatarTextBig}>{name.substring(0,1).toUpperCase() || '?'}</Text>
+                            <Text style={styles.avatarTextBig}>{name.substring(0, 1).toUpperCase() || '?'}</Text>
                         </View>
-                        <TextInput 
+                        <TextInput
                             style={styles.nameInput}
                             value={name}
                             onChangeText={setName}
@@ -100,13 +100,13 @@ export default function SettingsView({ theme, setTheme, font, setFont, onBack }:
                 </View>
 
                 {/* Visual Appearance */}
-                <Text style={[styles.sectionTitle, {color: c.accent}]}>DISPLAY & THEMES</Text>
-                <View style={[styles.section, {backgroundColor: c.card}]}>
-                    <View style={{padding: 15}}>
-                        <Text style={[styles.itemTitle, {color: c.text, marginBottom: 10}]}>Choose Theme</Text>
-                        <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                <Text style={[styles.sectionTitle, { color: c.accent }]}>DISPLAY & THEMES</Text>
+                <View style={[styles.section, { backgroundColor: c.card }]}>
+                    <View style={{ padding: 15 }}>
+                        <Text style={[styles.itemTitle, { color: c.text, marginBottom: 10 }]}>Choose Theme</Text>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                             {Object.keys(themes).map((t: any) => (
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     key={t}
                                     onPress={() => setTheme(t)}
                                     style={{
@@ -117,25 +117,25 @@ export default function SettingsView({ theme, setTheme, font, setFont, onBack }:
                                         justifyContent: 'center', alignItems: 'center'
                                     }}
                                 >
-                                    <View style={{width: 20, height: 20, borderRadius: 10, backgroundColor: (themes as any)[t].accent}} />
+                                    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: (themes as any)[t].accent }} />
                                 </TouchableOpacity>
                             ))}
                         </View>
                     </View>
-                    <View style={{padding: 15, borderTopWidth: 0.5, borderTopColor: c.bg}}>
-                        <Text style={[styles.itemTitle, {color: c.text, marginBottom: 10}]}>App Font</Text>
-                        <View style={{flexDirection: 'row'}}>
+                    <View style={{ padding: 15, borderTopWidth: 0.5, borderTopColor: c.bg }}>
+                        <Text style={[styles.itemTitle, { color: c.text, marginBottom: 10 }]}>App Font</Text>
+                        <View style={{ flexDirection: 'row' }}>
                             {['system', 'monospace'].map((f: any) => (
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     key={f}
                                     onPress={() => setFont(f)}
                                     style={{
-                                        paddingHorizontal: 15, paddingVertical: 8, 
+                                        paddingHorizontal: 15, paddingVertical: 8,
                                         borderRadius: 20, marginRight: 10,
                                         backgroundColor: font === f ? c.accent : c.bg
                                     }}
                                 >
-                                    <Text style={{color: font === f ? '#fff' : c.text, textTransform: 'capitalize'}}>{f}</Text>
+                                    <Text style={{ color: font === f ? '#fff' : c.text, textTransform: 'capitalize' }}>{f}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
@@ -143,19 +143,19 @@ export default function SettingsView({ theme, setTheme, font, setFont, onBack }:
                 </View>
 
                 {/* Mesh Performance Section */}
-                <Text style={[styles.sectionTitle, {color: c.accent}]}>CONNECTIVITY</Text>
-                <View style={[styles.section, {backgroundColor: c.card}]}>
-                    <SettingItem 
-                        icon={Radio} 
-                        title="Stealth Mode" 
+                <Text style={[styles.sectionTitle, { color: c.accent }]}>CONNECTIVITY</Text>
+                <View style={[styles.section, { backgroundColor: c.card }]}>
+                    <SettingItem
+                        icon={Radio}
+                        title="Stealth Mode"
                         subtitle="Only show up to people you know."
                         value={stealthMode}
                         onToggle={setStealthMode}
                         c={c}
                     />
-                    <SettingItem 
-                        icon={Cpu} 
-                        title="Mesh Booster" 
+                    <SettingItem
+                        icon={Cpu}
+                        title="Mesh Booster"
                         subtitle="Help strengthen the network."
                         value={relayEnabled}
                         onToggle={setRelayEnabled}
@@ -168,14 +168,14 @@ export default function SettingsView({ theme, setTheme, font, setFont, onBack }:
                 <View style={styles.section}>
                     <TouchableOpacity style={styles.actionItem}>
                         <Shield color="#8696A0" size={22} />
-                        <View style={{marginLeft: 15}}>
+                        <View style={{ marginLeft: 15 }}>
                             <Text style={styles.itemTitle}>Export Identity Keys</Text>
                             <Text style={styles.itemSubtitle}>Backup your unique mesh signature.</Text>
                         </View>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.actionItem}>
                         <Hash color="#8696A0" size={22} />
-                        <View style={{marginLeft: 15}}>
+                        <View style={{ marginLeft: 15 }}>
                             <Text style={styles.itemTitle}>Encryption Protocols</Text>
                             <Text style={styles.itemSubtitle}>Using FD-v1 (Xor-Envelope)</Text>
                         </View>
@@ -185,29 +185,41 @@ export default function SettingsView({ theme, setTheme, font, setFont, onBack }:
                 {/* Storage Diagnostics */}
                 <Text style={styles.sectionTitle}>DATA & STORAGE</Text>
                 <View style={styles.section}>
-                    <SettingItem 
-                        icon={HardDrive} 
-                        title="Aggressive Pruning" 
+                    <SettingItem
+                        icon={HardDrive}
+                        title="Aggressive Pruning"
                         subtitle="Auto-cleanup relay traffic weekly."
                         value={true}
-                        onToggle={() => {}}
+                        onToggle={() => { }}
                         c={c}
                     />
-                    <TouchableOpacity style={styles.actionItem} onPress={() => MeshStorage.pruneHistory()}>
-                        <Info color="#00A884" size={22} />
-                        <View style={{marginLeft: 15}}>
-                            <Text style={[styles.itemTitle, {color: '#00A884'}]}>Clean Cache Now</Text>
+                    <TouchableOpacity style={styles.actionItem} onPress={() => {
+                        Alert.alert(
+                            "Emergency Wipe",
+                            "This will permanently delete your identity and all chat history. You cannot undo this.",
+                            [
+                                { text: "Cancel", style: "cancel" },
+                                {
+                                    text: "WIPE EVERYTHING",
+                                    style: "destructive",
+                                    onPress: () => MeshStorage.wipeAllData()
+                                }
+                            ]
+                        );
+                    }}>
+                        <ShieldAlert color="#FF4444" size={22} />
+                        <View style={{ marginLeft: 15 }}>
+                            <Text style={[styles.itemTitle, { color: '#FF4444' }]}>Emergency Wipe</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
 
                 {/* Footer info */}
-                <View style={[styles.footer, {backgroundColor: c.bg}]}>
-                    <Text style={[styles.footerText, {color: c.sub}]}>FlowDrop v1.2.0 (Diamond Mesh)</Text>
-                    <Text style={[styles.footerText, {color: c.accent}]}>Made by Primers Corporation</Text>
-                    <Text style={[styles.footerText, {color: c.sub}]}>Self-Sovereign Messaging</Text>
+                <View style={[styles.footer, { backgroundColor: c.bg }]}>
+                    <Text style={[styles.footerText, { color: c.sub }]}>FlowDrop v1.2.0 <c /Text>
+                        <Text style={[styles.footerText, { color: c.accent }]}>Made by Primers Corporation</Text>
                 </View>
-                <View style={{height: 50}} />
+                <View style={{ height: 50 }} />
             </ScrollView>
         </View>
     );

@@ -80,3 +80,13 @@ desktop-server/node.zip
 desktop-server/uploads/*
 !desktop-server/uploads/.gitkeep
 *.exe
+
+# Rust
+target/
+core/target/
+**/*.so
+**/*.d
+**/*.rlib
+**/*.rmeta
+**/*.o
+**/*.a

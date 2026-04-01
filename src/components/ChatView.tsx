@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
     View, Text, StyleSheet, TouchableOpacity, FlatList, 
-    TextInput, KeyboardAvoidingView, Platform, Image 
+    TextInput, KeyboardAvoidingView, Platform, Image, Alert
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ArrowLeft, Send, Paperclip, ShieldCheck, ShieldAlert, Lock, CheckCheck } from 'lucide-react-native';
@@ -46,7 +46,39 @@ export default function ChatView({ contact, onBack }: ChatViewProps) {
 
     const handleSend = async () => {
         if (!inputText.trim()) return;
-        await MeshRouter.createMessage(contact.id, inputText, contact.publicKey);
+        
+        let messageText = inputText.trim();
+        const profile = await MeshStorage.getMyProfile();
+        
+        // BitChat IRC-style command processor
+        if (messageText.startsWith('/')) {
+            const parts = messageText.split(' ');
+            const cmd = parts[0].toLowerCase();
+            const args = parts.slice(1).join(' ');
+            
+            if (cmd === '/clear') {
+                await MeshStorage.clearMessagesWithContact(contact.id);
+                loadMessages();
+                setInputText('');
+                return;
+            } else if (cmd === '/slap') {
+                messageText = `* 🐟 I slapped ${args || contact.name} around a bit with a large trout *`;
+            } else if (cmd === '/hug') {
+                messageText = `* 🫂 I hugged ${args || contact.name} *`;
+            } else if (cmd === '/who') {
+                Alert.alert('Peer Info', `Name: ${contact.name}\nIdentity: ${contact.publicKey || contact.id}`);
+                setInputText('');
+                return;
+            } else if (cmd === '/msg') {
+                // Ignore the command syntax and just extract the message payload
+                const msgparts = args.split(' ');
+                if (msgparts.length > 1 && msgparts[0].startsWith('@')) {
+                    messageText = msgparts.slice(1).join(' ');
+                }
+            }
+        }
+
+        await MeshRouter.createMessage(contact.id, messageText, contact.publicKey);
         setInputText('');
         loadMessages();
     };
