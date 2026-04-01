@@ -197,7 +197,7 @@ pub extern "system" fn Java_com_flowdrop_core_RustCore_onBleChunkReceived(
 
 #[no_mangle]
 pub extern "system" fn Java_com_flowdrop_core_RustCore_encodeGeohash(
-    env: JNIEnv,
+    mut env: JNIEnv,
     _class: JClass,
     lat: f64,
     lon: f64,
@@ -253,7 +253,7 @@ pub extern "system" fn Java_com_flowdrop_core_RustCore_onChunkWriteCompleted(
 
 #[no_mangle]
 pub extern "system" fn Java_com_flowdrop_core_RustCore_getThreads(
-    env: JNIEnv,
+    mut env: JNIEnv,
     _class: JClass,
 ) -> jstring {
     let response = database::get_threads_json();
@@ -266,7 +266,7 @@ pub extern "system" fn Java_com_flowdrop_core_RustCore_getThreads(
 
 #[no_mangle]
 pub extern "system" fn Java_com_flowdrop_core_RustCore_getMessages(
-    env: JNIEnv,
+    mut env: JNIEnv,
     _class: JClass,
     peer_id: JString,
 ) -> jstring {
