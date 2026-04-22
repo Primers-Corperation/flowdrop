@@ -1,6 +1,7 @@
 package com.flowdrop.core
 
 import android.app.*
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Handler
@@ -54,7 +55,7 @@ class MeshForegroundService : Service() {
 
         // 3. Initialize & Activate Hardware Layers
         BluetoothScanner.init(this)
-        BluetoothScanner.startAdvertising(this, localNodeId)
+        BluetoothScanner.startAdvertising(this, localNodeId ?: "unknown_node")
         BluetoothScanner.startScanning(this)
         
         FlowDropGattServer.start(this)

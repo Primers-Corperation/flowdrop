@@ -106,8 +106,44 @@ object FlowDropGattClient {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 val addr = gatt.device.address
                 val nodeId = BluetoothScanner.getNodeIdForAddress(addr) ?: addr
-                Log.i(TAG, "Services discovered for $nodeId. Flushing pending chunks.")
+                Log.i(TAG, "Services discovered for $nodeId. Reading identity characteristic.")
+                
+                // Always try to read the full identity upon discovery
+                val service = gatt.getService(FlowDropGattServer.SERVICE_UUID)
+                val idChar = service?.getCharacteristic(FlowDropGattServer.NODE_ID_CHAR_UUID)
+                if (idChar != null) {
+                    gatt.readCharacteristic(idChar)
+                }
+
                 flushPendingChunks(nodeId, gatt)
+            }
+        }
+
+        override fun onCharacteristicRead(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            status: Int
+        ) {
+            if (status == BluetoothGatt.GATT_SUCCESS && characteristic.uuid == FlowDropGattServer.NODE_ID_CHAR_UUID) {
+                val addr = gatt.device.address
+                val beaconHex = BluetoothScanner.getNodeIdForAddress(addr) ?: ""
+                
+                if (beaconHex.isNotEmpty()) {
+                    val pubkey = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        characteristic.value?.let { String(it) } ?: ""
+                    } else {
+                        @Suppress("DEPRECATION")
+                        characteristic.value?.let { String(it) } ?: ""
+                    }
+                    
+                    if (pubkey.isNotEmpty()) {
+                        val beaconBytes = (0 until beaconHex.length step 2)
+                            .map { beaconHex.substring(it, it + 2).toInt(16).toByte() }
+                            .toByteArray()
+                        
+                        IdentityResolutionManager.storeIdentity(beaconBytes, pubkey)
+                    }
+                }
             }
         }
 

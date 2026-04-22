@@ -107,7 +107,7 @@ fun FlowDropApp() {
             // Screen 1: Conversation List
             composable("conversations") {
                 ConversationListScreen(
-                    onConversationClick = { peerId ->
+                    onNavigateToChat = { peerId ->
                         navController.navigate("chat/$peerId")
                     }
                 )
@@ -120,8 +120,7 @@ fun FlowDropApp() {
             ) { backStackEntry ->
                 val peerId = backStackEntry.arguments?.getString("peerId") ?: ""
                 ChatScreen(
-                    peerId = peerId,
-                    onBack = { navController.popBackStack() }
+                    peerId = peerId
                 )
             }
 

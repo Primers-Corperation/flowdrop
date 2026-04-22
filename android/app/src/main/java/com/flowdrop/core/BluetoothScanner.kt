@@ -94,8 +94,8 @@ object BluetoothScanner {
         // We ensure localNodeId is cleanly truncated to 20 bytes max to prevent 
         // underlying hardware exceptions during packet broadcast.
         var payloadBytes = localNodeId.toByteArray(StandardCharsets.UTF_8)
-        if (payloadBytes.size > 20) {
-            payloadBytes = payloadBytes.sliceArray(0 until 20)
+        if (payloadBytes.size > 6) {
+            payloadBytes = payloadBytes.sliceArray(0 until 6)
         }
         
         val data = AdvertiseData.Builder()
@@ -151,6 +151,8 @@ object BluetoothScanner {
         Log.i(TAG, "Stopped BLE Scanning.")
     }
 
+    fun getAddressForBeacon(beaconHex: String): String? = nodeIdToAddress[beaconHex]
+
     // Callbacks
     private val advertiseCallback = object : AdvertiseCallback() {
         override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
@@ -168,16 +170,16 @@ object BluetoothScanner {
             result?.scanRecord?.let { record ->
                 val manufacturerData = record.getManufacturerSpecificData(1337)
                 if (manufacturerData != null) {
-                    val nodeId = String(manufacturerData, StandardCharsets.UTF_8)
+                    val beaconHex = manufacturerData.joinToString("") { "%02x".format(it) }
                     
-                    // Track this physical device to avoid randomization issues during GATT writes
+                    // Track this physical hardware address associated with the 6-byte beacon
                     result.device?.address?.let { addr ->
-                        addressToNodeId[addr] = nodeId
-                        nodeIdToAddress[nodeId] = addr
+                        nodeIdToAddress[beaconHex] = addr
+                        addressToNodeId[addr] = beaconHex
                     }
 
-                    // Handoff to Rust core via JNI contract on the centralized RustCore class
-                    RustCore.onPeerDiscovered(nodeId)
+                    // Handoff to resolution manager to determine who this identity actually is
+                    IdentityResolutionManager.onBeaconReceived(manufacturerData)
                 }
             }
         }

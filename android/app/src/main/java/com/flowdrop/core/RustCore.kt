@@ -70,4 +70,16 @@ object RustCore {
 
     @JvmStatic
     external fun sweepInboundBuffers()
+
+    @JvmStatic
+    external fun resolveBeaconToIdentity(beacon: ByteArray): String?
+
+    @JvmStatic
+    external fun registerBeaconForIdentity(beacon: ByteArray, pubkey: String)
+
+    @JvmStatic
+    external fun requestIdentityPacket(beacon: ByteArray): ByteArray?
+
+    @JvmStatic
+    external fun shutdownEngine()
 }

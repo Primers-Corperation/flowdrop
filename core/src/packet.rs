@@ -4,6 +4,7 @@ use std::convert::TryFrom;
 pub enum PacketType {
     DataChunk = 0x01,
     Nack = 0x02,
+    IdentityRequest = 0x03,
 }
 
 impl TryFrom<u8> for PacketType {
@@ -12,6 +13,7 @@ impl TryFrom<u8> for PacketType {
         match value {
             0x01 => Ok(PacketType::DataChunk),
             0x02 => Ok(PacketType::Nack),
+            0x03 => Ok(PacketType::IdentityRequest),
             _ => Err(format!("Unknown PacketType byte: {:#X}", value)),
         }
     }
@@ -31,6 +33,12 @@ pub struct NackHeader {
 }
 
 #[derive(Debug, Clone)]
+pub struct IdentityRequestHeader {
+    pub beacon: [u8; 6],
+    pub request_id: u32,
+}
+
+#[derive(Debug, Clone)]
 pub enum Packet {
     Data {
         header: DataChunkHeader,
@@ -39,10 +47,12 @@ pub enum Packet {
     Nack {
         header: NackHeader,
     },
+    IdentityRequest {
+        header: IdentityRequestHeader,
+    },
 }
 
 impl Packet {
-    /// Serializes the struct into a binary array ready for BLE transmission
     pub fn encode(&self) -> Vec<u8> {
         let mut buffer = Vec::new();
         match self {
@@ -56,16 +66,19 @@ impl Packet {
             Packet::Nack { header } => {
                 buffer.push(PacketType::Nack as u8);
                 buffer.extend_from_slice(&header.msg_id.to_be_bytes());
-                // encode all missing chunks as 2-byte numbers
                 for index in &header.missing_indices {
                     buffer.extend_from_slice(&index.to_be_bytes());
                 }
+            }
+            Packet::IdentityRequest { header } => {
+                buffer.push(PacketType::IdentityRequest as u8);
+                buffer.extend_from_slice(&header.beacon);
+                buffer.extend_from_slice(&header.request_id.to_be_bytes());
             }
         }
         buffer
     }
 
-    /// Deserializes incoming BLE bytes back into a parsed Packet structure
     pub fn decode(bytes: &[u8]) -> Result<Self, String> {
         if bytes.is_empty() {
             return Err("Packet is empty".to_string());
@@ -75,38 +88,38 @@ impl Packet {
         match packet_type {
             PacketType::DataChunk => {
                 if bytes.len() < 9 {
-                    return Err("DataChunk packet too small for header".to_string());
+                    return Err("DataChunk packet too small".to_string());
                 }
                 let msg_id = u32::from_be_bytes([bytes[1], bytes[2], bytes[3], bytes[4]]);
                 let total_chunks = u16::from_be_bytes([bytes[5], bytes[6]]);
                 let chunk_index = u16::from_be_bytes([bytes[7], bytes[8]]);
-                let payload = bytes[9..].to_vec();
-
                 Ok(Packet::Data {
-                    header: DataChunkHeader {
-                        msg_id,
-                        total_chunks,
-                        chunk_index,
-                    },
-                    payload,
+                    header: DataChunkHeader { msg_id, total_chunks, chunk_index },
+                    payload: bytes[9..].to_vec(),
                 })
             }
             PacketType::Nack => {
                 if bytes.len() < 5 {
-                    return Err("NACK packet too small for header".to_string());
+                    return Err("NACK packet too small".to_string());
                 }
                 let msg_id = u32::from_be_bytes([bytes[1], bytes[2], bytes[3], bytes[4]]);
-                
                 let mut missing_indices = Vec::new();
                 let mut offset = 5;
                 while offset + 1 < bytes.len() {
-                    let idx = u16::from_be_bytes([bytes[offset], bytes[offset + 1]]);
-                    missing_indices.push(idx);
+                    missing_indices.push(u16::from_be_bytes([bytes[offset], bytes[offset + 1]]));
                     offset += 2;
                 }
-
-                Ok(Packet::Nack {
-                    header: NackHeader { msg_id, missing_indices },
+                Ok(Packet::Nack { header: NackHeader { msg_id, missing_indices } })
+            }
+            PacketType::IdentityRequest => {
+                if bytes.len() < 11 {
+                    return Err("IdentityRequest packet too small".to_string());
+                }
+                let mut beacon = [0u8; 6];
+                beacon.copy_from_slice(&bytes[1..7]);
+                let request_id = u32::from_be_bytes([bytes[7], bytes[8], bytes[9], bytes[10]]);
+                Ok(Packet::IdentityRequest {
+                    header: IdentityRequestHeader { beacon, request_id }
                 })
             }
         }

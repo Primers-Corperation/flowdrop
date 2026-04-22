@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flowdrop.core.IdentityResolutionManager
 import com.flowdrop.core.RustCore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -91,7 +92,12 @@ fun ChatScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(peerId.take(8) + "...") },
+                title = { 
+                    Column {
+                        Text(peerId.take(8) + "...")
+                        PeerIdentityBadge(peerId)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 )
@@ -120,6 +126,25 @@ fun ChatScreen(
                 ChatBubble(message)
             }
         }
+    }
+}
+
+@Composable
+fun PeerIdentityBadge(peerId: String) {
+    val identity by IdentityResolutionManager.getIdentityStatus(peerId).collectAsState()
+    val isVerified = identity.isNotEmpty() || peerId.length > 12
+
+    Surface(
+        color = if (isVerified) Color(0xFF4CAF50) else Color(0xFFFF9800),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.padding(top = 2.dp)
+    ) {
+        Text(
+            text = if (isVerified) "Verified Identity" else "Resolving Identity...",
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White
+        )
     }
 }
 

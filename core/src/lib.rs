@@ -38,6 +38,7 @@ pub mod geohash;
 pub mod mesh_router;
 pub mod nostr;
 pub mod packet;
+pub mod discovery_resolver;
 pub mod relay_pool;
 
 #[no_mangle]
@@ -283,6 +284,70 @@ pub extern "system" fn Java_com_flowdrop_core_RustCore_getMessages(
     match env.new_string(response) {
         Ok(s) => s.into_raw(),
         Err(_) => ptr::null_mut(),
+    }
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_flowdrop_core_RustCore_resolveBeaconToIdentity(
+    mut env: JNIEnv,
+    _class: JClass,
+    beacon: JByteArray,
+) -> jstring {
+    let bytes = match env.convert_byte_array(&beacon) {
+        Ok(b) if b.len() == 6 => {
+            let mut arr = [0u8; 6];
+            arr.copy_from_slice(&b);
+            arr
+        },
+        _ => return ptr::null_mut(),
+    };
+
+    match discovery_resolver::resolve_beacon_to_identity(&bytes) {
+        Some(pk) => env.new_string(pk).map(|s| s.into_raw()).unwrap_or(ptr::null_mut()),
+        None => ptr::null_mut(),
+    }
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_flowdrop_core_RustCore_registerBeaconForIdentity(
+    mut env: JNIEnv,
+    _class: JClass,
+    beacon: JByteArray,
+    pubkey: JString,
+) {
+    let bytes = match env.convert_byte_array(&beacon) {
+        Ok(b) if b.len() == 6 => {
+            let mut arr = [0u8; 6];
+            arr.copy_from_slice(&b);
+            arr
+        },
+        _ => return,
+    };
+    let pk: String = match env.get_string(&pubkey) {
+        Ok(s) => s.into(),
+        Err(_) => return,
+    };
+    discovery_resolver::register_beacon_for_identity(&bytes, &pk);
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_flowdrop_core_RustCore_requestIdentityPacket(
+    mut env: JNIEnv,
+    _class: JClass,
+    beacon: JByteArray,
+) -> JByteArray {
+    let bytes = match env.convert_byte_array(&beacon) {
+        Ok(b) if b.len() == 6 => {
+            let mut arr = [0u8; 6];
+            arr.copy_from_slice(&b);
+            arr
+        },
+        _ => return ptr::null_mut().into(),
+    };
+
+    match discovery_resolver::request_full_identity(&bytes) {
+        Ok(packet) => env.byte_array_from_slice(&packet).unwrap_or(ptr::null_mut().into()),
+        Err(_) => ptr::null_mut().into(),
     }
 }
 

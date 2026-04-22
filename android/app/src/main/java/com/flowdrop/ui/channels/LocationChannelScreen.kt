@@ -3,6 +3,8 @@ package com.flowdrop.ui.channels
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons

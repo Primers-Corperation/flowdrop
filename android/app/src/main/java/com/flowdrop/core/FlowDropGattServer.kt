@@ -19,10 +19,12 @@ object FlowDropGattServer {
     val SERVICE_UUID: UUID = UUID.fromString("F10E0D20-24A2-DB8E-5C80-00BEA1234000")
     val RX_WRITE_CHAR_UUID: UUID = UUID.fromString("F10E0D21-24A2-DB8E-5C80-00BEA1234000")
     val NACK_NOTIFY_CHAR_UUID: UUID = UUID.fromString("F10E0D22-24A2-DB8E-5C80-00BEA1234000")
+    val NODE_ID_CHAR_UUID: UUID = UUID.fromString("F10E0D23-24A2-DB8E-5C80-00BEA1234000")
 
     private var gattServer: BluetoothGattServer? = null
     private var rxCharacteristic: BluetoothGattCharacteristic? = null
     private var nackCharacteristic: BluetoothGattCharacteristic? = null
+    private var idCharacteristic: BluetoothGattCharacteristic? = null
 
     fun start(context: Context) {
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -47,12 +49,22 @@ object FlowDropGattServer {
             BluetoothGattCharacteristic.PERMISSION_READ
         )
 
+        // 3. Identity Read Characteristic (Resolution path)
+        idCharacteristic = BluetoothGattCharacteristic(
+            NODE_ID_CHAR_UUID,
+            // The full 32-byte pubkey is sensitive but public in Nostr. 
+            // We allow direct READ for identity resolution.
+            BluetoothGattCharacteristic.PROPERTY_READ,
+            BluetoothGattCharacteristic.PERMISSION_READ
+        )
+
         val service = BluetoothGattService(SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
         service.addCharacteristic(rxCharacteristic)
         service.addCharacteristic(nackCharacteristic)
+        service.addCharacteristic(idCharacteristic)
 
         gattServer?.addService(service)
-        Log.i(TAG, "GATT Server started with RX Write and NACK Notify characteristics.")
+        Log.i(TAG, "GATT Server started with Identity Resolution support.")
     }
 
     fun stop() {
@@ -79,6 +91,27 @@ object FlowDropGattServer {
     private val gattServerCallback = object : BluetoothGattServerCallback() {
         override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
             Log.d(TAG, "Connection state change: ${device.address} -> $newState")
+        }
+
+        override fun onCharacteristicReadRequest(
+            device: BluetoothDevice,
+            requestId: Int,
+            offset: Int,
+            characteristic: BluetoothGattCharacteristic
+        ) {
+            if (characteristic.uuid == NODE_ID_CHAR_UUID) {
+                // Return our full Identity Public Key
+                val myIdentity = FlowDropApplication.prefs.getString("node_pubkey", "") ?: ""
+                val payload = myIdentity.toByteArray()
+                
+                gattServer?.sendResponse(
+                    device, 
+                    requestId, 
+                    BluetoothGatt.GATT_SUCCESS, 
+                    offset, 
+                    if (offset < payload.size) payload.copyOfRange(offset, payload.size) else byteArrayOf()
+                )
+            }
         }
 
         override fun onCharacteristicWriteRequest(
